@@ -1,31 +1,32 @@
 package com.delivery.payment.controller;
 
-import com.delivery.payment.dto.PaymentRequest;
-import com.delivery.payment.dto.PaymentResponse;
-import com.delivery.payment.entity.PaymentEntity;
-import com.delivery.payment.repository.PaymentRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import java.util.Map;
+import java.util.Random;
 
 @RestController
 @RequestMapping("/payments")
 public class PaymentController {
 
-    private final PaymentRepository paymentRepository;
+    @Value("${server.port:8081}")
+    private String serverPort;
 
-    public PaymentController(PaymentRepository paymentRepository) {
-        this.paymentRepository = paymentRepository;
-    }
+    private final Random random = new Random();
 
-    @PostMapping("/process")
-    public PaymentResponse processPayment(@RequestBody PaymentRequest request) {
-        String paymentId = UUID.randomUUID().toString();
-        String status = "APPROVED";
+    @PostMapping
+    public ResponseEntity<?> processPayment(@RequestBody Map<String, Object> request) {
+        if (random.nextBoolean()) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Simulated payment failure"));
+        }
 
-        PaymentEntity entity = new PaymentEntity(paymentId, status, request.amount());
-        paymentRepository.save(entity);
-
-        return new PaymentResponse(paymentId, status, request.amount());
+        return ResponseEntity.ok(Map.of(
+                "status", "APPROVED",
+                "instance", Integer.parseInt(serverPort)
+        ));
     }
 }
