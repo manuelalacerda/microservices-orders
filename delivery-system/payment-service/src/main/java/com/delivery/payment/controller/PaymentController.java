@@ -12,21 +12,21 @@ import java.util.Random;
 @RequestMapping("/payments")
 public class PaymentController {
 
-    @Value("${server.port:8081}")
-    private String serverPort;
+    @Value("${server.port}")
+    private int serverPort;
 
     private final Random random = new Random();
 
     @PostMapping
-    public ResponseEntity<?> processPayment(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<?> processPayment(@RequestBody Map<String, Object> body) {
         if (random.nextBoolean()) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Simulated payment failure"));
+                    .body(Map.of("error", "Payment service temporary failure"));
         }
 
         return ResponseEntity.ok(Map.of(
                 "status", "APPROVED",
-                "instance", Integer.parseInt(serverPort)
+                "instance", serverPort
         ));
     }
 }

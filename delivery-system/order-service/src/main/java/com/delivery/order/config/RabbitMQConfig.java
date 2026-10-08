@@ -19,7 +19,7 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue queue() {
-        return new Queue(QUEUE, true);
+        return QueueBuilder.durable(QUEUE).build();
     }
 
     @Bean

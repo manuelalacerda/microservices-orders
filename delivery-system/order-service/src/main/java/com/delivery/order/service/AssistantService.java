@@ -14,26 +14,25 @@ public class AssistantService {
     private final ChatClient chatClient;
     private final DishRepository dishRepository;
 
-    public AssistantService(ChatClient.Builder chatClientBuilder, DishRepository dishRepository) {
-        this.chatClient = chatClientBuilder.build();
+    public AssistantService(ChatClient.Builder builder, DishRepository dishRepository) {
+        this.chatClient = builder.build();
         this.dishRepository = dishRepository;
     }
 
     public String ask(String question) {
         List<Dish> dishes = dishRepository.findAll();
-        String menuPrompt = dishes.stream()
-                .map(d -> String.format("- %s: %s (Preço: R$ %.2f, Stock: %d)",
-                        d.getName(), d.getDescription(), d.getPrice(), d.getStock()))
+
+        String menuContext = dishes.stream()
+                .map(d -> d.getName() + " - Preço: R$ " + d.getPrice() + " - Estoque: " + d.getStock())
                 .collect(Collectors.joining("\n"));
 
         String systemPrompt = """
-                Você é um atendente virtual educado de um restaurante de delivery.
-                Responda às perguntas dos clientes de forma curta e direta em português.
-                Baseie-se APENAS no cardápio abaixo para responder sobre pratos, ingredientes, preços e estoque.
-                Se o cliente fizer perguntas fora do tema do restaurante ou cardápio, recuse educadamente e retorne o assunto para o restaurante.
-                
-                Cardápio Atual:
-                """ + menuPrompt;
+            Você é um atendente do restaurante. Responda em português e com respostas curtas.
+            Utilize apenas as informações do cardápio abaixo para responder dúvidas sobre pratos, preços e estoque:
+            """ + menuContext + """
+            
+            Se a pergunta não for sobre o cardápio ou o restaurante, recuse educadamente e peça para focar no cardápio.
+            """;
 
         return chatClient.prompt()
                 .system(systemPrompt)
